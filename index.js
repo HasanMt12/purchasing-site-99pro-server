@@ -42,7 +42,9 @@ async function run(){
         const AllProductsCollections = client.db('99proBusinessSite').collection('allProducts')
         const usersCollections = client.db('99proBusinessSite').collection('users')
        const wishlistCollections = client.db('99proBusinessSite').collection('wishlist')
-        // NOTE: make sure you use verifyAdmin after verifyJWT
+        const cartCollections = client.db('99proBusinessSite').collection('cart') 
+         const paymentCollections = client.db('99proBusinessSite').collection('payment') 
+       // NOTE: make sure you use verifyAdmin after verifyJWT
         const verifyAdmin = async (req, res, next) => {
         // const decodedEmail = req.decoded.email;
         const query = { email: decodedEmail };
@@ -175,6 +177,7 @@ async function run(){
       const result = await AllProductsCollections.deleteOne(query);
       res.send(result);
     });
+
      app.post("/wishlist", async (req, res) => {
         const wishlist = req.body;
         const result = await wishlistCollections.insertOne(wishlist);
@@ -187,7 +190,62 @@ const query = {email: email}
 const wishlist = await wishlistCollections.find(query).toArray();
 res.send(wishlist);
 })
+
+app.post("/cart", async (req, res) => {
+        const cart = req.body;
+        const result = await cartCollections.insertOne(cart);
+        res.send(result);
+    });
+
+//     app.get('/cart',async (req,res)=>{
+// const email = req.query.email
+// const query = {email: email}
+// const cart = await cartCollections.find(query).toArray();
+// res.send(cart);
+// })
+
+//  app.put("/cart/pay/:email", async (req, res) => {
+//       const email = req.params.id;
+//       const filter = { email: new ObjectId(email) };
+//       const options = { upsert: true };
+//       const updatedDoc = {
+//         $set: {
+//           payment: "CashOnPaid",
+//         },
+//       };
+//       const result = await cartCollections.updateOne(
+//         filter,
+//         updatedDoc,
+//         options
+//       );
+//       res.send(result);
+//     });
+
+
+    // Bookings Create on database:
+    app.post("/payment", async (req, res) => {
+      const bookings = req.body;
+      const result = await paymentCollections.insertOne(bookings);
+      res.send(result);
+    });
+
+    // Get Bookings Data from database on table:
+    app.get("/payment", async (req, res) => {
+      const email = req.query.email;
+       /* const decodedEmail = req.decoded.email;
+
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden access" });
+      }  */
+      // console.log(email)
+      console.log('token',req.headers.authorization)
+      const query = { email: email };
+      const bookings = await paymentCollections.find(query).toArray();
+      res.send(bookings);
+    });
     }
+
+    
     finally{
 
     }
