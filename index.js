@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
 require("dotenv").config();
 
 
@@ -41,12 +41,12 @@ async function run(){
         const babyProductsCollections = client.db('99proBusinessSite').collection('babyProducts')
         const AllProductsCollections = client.db('99proBusinessSite').collection('allProducts')
         const usersCollections = client.db('99proBusinessSite').collection('users')
-       
+       const wishlistCollections = client.db('99proBusinessSite').collection('wishlist')
         // NOTE: make sure you use verifyAdmin after verifyJWT
         const verifyAdmin = async (req, res, next) => {
         // const decodedEmail = req.decoded.email;
         const query = { email: decodedEmail };
-        const user = await usersCollection.findOne(query);
+        const user = await usersCollections.findOne(query);
         if (user?.role !== "admin") {
             return res.status(403).send({ message: "forbidden access" });
         }
@@ -120,7 +120,73 @@ async function run(){
             const user = await usersCollections.findOne(query);
             res.send({ isAdmin: user?.role === 'admin'});
         })
+  //all user find and protect admin route
+        app.get('/allProducts/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id }
+            const user = await AllProductsCollections.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin'});
+        })
+          // check product stock out or not:
+    app.put("/allProducts/verify/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          verification: "stockOut",
+        },
+      };
+      const result = await AllProductsCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
 
+     app.put("/users/goldenUser/:email", async (req, res) => {
+      const email = req.params.id;
+      const filter = { email: new ObjectId(email) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          verification: "goldenUser",
+        },
+      };
+      const result = await usersCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+
+ app.get('/users', async (req, res) => {
+             const query = {};
+             const users = await usersCollections.find(query).toArray();
+             res.send(users);
+
+         })
+ // ----delete product----
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await AllProductsCollections.deleteOne(query);
+      res.send(result);
+    });
+     app.post("/wishlist", async (req, res) => {
+        const wishlist = req.body;
+        const result = await wishlistCollections.insertOne(wishlist);
+        res.send(result);
+    });
+
+    app.get('/wishlist',async (req,res)=>{
+const email = req.query.email
+const query = {email: email}
+const wishlist = await wishlistCollections.find(query).toArray();
+res.send(wishlist);
+})
     }
     finally{
 
