@@ -41,9 +41,11 @@ async function run(){
         const babyProductsCollections = client.db('99proBusinessSite').collection('babyProducts')
         const AllProductsCollections = client.db('99proBusinessSite').collection('allProducts')
         const usersCollections = client.db('99proBusinessSite').collection('users')
-       const wishlistCollections = client.db('99proBusinessSite').collection('wishlist')
+        const wishlistCollections = client.db('99proBusinessSite').collection('wishlist')
         const cartCollections = client.db('99proBusinessSite').collection('cart') 
-         const paymentCollections = client.db('99proBusinessSite').collection('payment') 
+        const paymentCollections = client.db('99proBusinessSite').collection('payment')
+       const petCollections = client.db('99proBusinessSite').collection('petItems') 
+       const gadgetCollections = client.db('99proBusinessSite').collection('onlyGadgets')
        // NOTE: make sure you use verifyAdmin after verifyJWT
         const verifyAdmin = async (req, res, next) => {
         // const decodedEmail = req.decoded.email;
@@ -66,6 +68,17 @@ async function run(){
              const gadgetsAndTools = await gadgetsAndToolsCollections.find(query).toArray();
              res.send(gadgetsAndTools);
          })
+          app.get('/petItems', async (req, res) => {
+            const query = {};
+            const pets = await petCollections.find(query).toArray();
+            res.send(pets);
+          })
+           app.get('/Gadgets', async (req, res) => {
+            const query = {};
+            const gadgets = await gadgetCollections.find(query).toArray();
+            res.send(gadgets);
+          })
+
 
          app.get('/babyProducts', async (req, res) => {
              const query = {};
@@ -147,22 +160,19 @@ async function run(){
       res.send(result);
     });
 
-     app.put("/users/goldenUser/:email", async (req, res) => {
-      const email = req.params.id;
-      const filter = { email: new ObjectId(email) };
-      const options = { upsert: true };
-      const updatedDoc = {
-        $set: {
-          verification: "goldenUser",
-        },
-      };
-      const result = await usersCollections.updateOne(
-        filter,
-        updatedDoc,
-        options
-      );
-      res.send(result);
-    });
+     app.put('/users/admin/:id',  async(req , res) => {
+           
+            const id = req.params.id;
+              const filter = {_id:ObjectId(id)}
+              const options = {upsert: true};
+              const updatedDoc = {
+                $set: {
+                  verification: 'goldenUser'
+                }
+              }
+              const result = await usersCollections.updateOne(filter,  updatedDoc, options);
+              res.send(result);
+           });
 
  app.get('/users', async (req, res) => {
              const query = {};
@@ -197,12 +207,12 @@ app.post("/cart", async (req, res) => {
         res.send(result);
     });
 
-//     app.get('/cart',async (req,res)=>{
-// const email = req.query.email
-// const query = {email: email}
-// const cart = await cartCollections.find(query).toArray();
-// res.send(cart);
-// })
+    app.get('/cart',async (req,res)=>{
+const email = req.query.email
+const query = {email: email}
+const cart = await cartCollections.find(query).toArray();
+res.send(cart);
+})
 
 //  app.put("/cart/pay/:email", async (req, res) => {
 //       const email = req.params.id;
@@ -229,21 +239,34 @@ app.post("/cart", async (req, res) => {
       res.send(result);
     });
 
+      // app.get('/payment', async (req, res) => {
+      //     const email = req.query.email
+      //     const query = {
+      //         email: email
+      //     }
+      //     const cart = await paymentCollections.find(query).toArray();
+      //     res.send(cart);
+      // })
+      app.get('/payment', async (req, res) => {
+             const query = {};
+             const payment = await paymentCollections.find(query).toArray();
+             res.send(payment);
+         })
     // Get Bookings Data from database on table:
-    app.get("/payment", async (req, res) => {
-      const email = req.query.email;
-       /* const decodedEmail = req.decoded.email;
+    // app.get("/payment", async (req, res) => {
+    //   const email = req.query.email;
+    //    /* const decodedEmail = req.decoded.email;
 
-      if (email !== decodedEmail) {
-        return res.status(403).send({ message: "forbidden access" });
-      }  */
-      // console.log(email)
-      console.log('token',req.headers.authorization)
-      const query = { email: email };
-      const bookings = await paymentCollections.find(query).toArray();
-      res.send(bookings);
-    });
-    }
+    //   if (email !== decodedEmail) {
+    //     return res.status(403).send({ message: "forbidden access" });
+    //   }  */
+    //   // console.log(email)
+    //   console.log('token',req.headers.authorization)
+    //   const query = { email: email };
+    //   const bookings = await paymentCollections.find(query).toArray();
+    //   res.send(bookings);
+    // });
+     }
 
     
     finally{
